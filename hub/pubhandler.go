@@ -33,7 +33,8 @@ func publish(r *http.Request) {
 			client := &http.Client{}
 			resp, err := client.Do(req)
 			if err != nil {
-				panic(err)
+				fmt.Println("client: "+cb, err)
+				fmt.Println("client: ", resp.Status)
 			}
 			defer resp.Body.Close()
 		}
