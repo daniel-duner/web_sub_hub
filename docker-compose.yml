@@ -1,0 +1,32 @@
+version: "3.0"
+
+services:
+
+  # the client has two endpoints other then the web sub portion
+  # /log which displays all messages received from the hub
+  # /resub which throws away the old subscription and try to create a new one.
+  web-sub-client:
+    image: modfin/websub-client:latest
+    hostname: web-sub-client
+    ports:
+      - "8081:8080"
+    environment:
+      - HOSTNAME=web-sub-client
+      - PORT=8080
+      - HUB_URL=http://hub:8080
+      - TOPIC=/a/topic
+    restart: on-failure
+
+
+  hub:
+    hostname: hub
+    build:
+      context: ./hub
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    volumes:
+      - ./hub:/go/src/hub
+
+
