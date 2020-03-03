@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -41,14 +42,25 @@ func serviceHandler(r *http.Request) {
 
 //Sends a request to an alleged subscriber to verify their intent, returns nil if all is well
 func verificationRequest(cb string, mode string, topic string, secret string) error {
-	verificationURL := cb + "?hub.mode=" + mode + "&hub.topic=" + topic + "&hub.secret=" + secret
+	challenge := randomString(128)
+	verificationURL := cb + "?hub.mode=" + mode + "&hub.topic=" + topic + "&hub.secret=" + secret + "&hub.challenge=" + challenge
 	resp, err := http.Get(verificationURL)
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
+	defer resp.Body.Close()
 	fmt.Println("HTTP Response Status:", resp.StatusCode, http.StatusText(resp.StatusCode))
 	if resp.StatusCode >= 200 || resp.StatusCode <= 299 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+		chal := string(body)
+		if chal != challenge {
+			return errors.New("Challenge failed to pass received challenge: " + chal)
+		}
 		return nil
 	}
 	return errors.New("Verification of intent failed action " + mode + " did not go through")

@@ -1,5 +1,6 @@
 package main
 
+//initializes a hash map with string key and value of type struct subscription
 var subscriptions = make(map[string]subscription)
 
 func main() {
